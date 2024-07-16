@@ -1,0 +1,28 @@
+{
+  "name": "dartnet-gui",
+  "version": "1.0.0",
+  "description": "A dart game frontend to be used with DartNet steel darts detection",
+  "main": "index.js",
+  "scripts": {
+    "build": "webpack",
+    "start": "webpack-dev-server --port 8080"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@babylonjs/core": "^7.15.0",
+    "@babylonjs/gui": "^7.15.0",
+    "@babylonjs/inspector": "^7.15.0",
+    "@babylonjs/loaders": "^7.15.0",
+    "@babylonjs/materials": "^7.15.0",
+    "@babylonjs/post-processes": "^7.15.0",
+    "@babylonjs/serializers": "^7.15.0",
+    "babylon-htmlmesh": "^2.0.1",
+    "html-webpack-plugin": "^5.6.0",
+    "ts-loader": "^9.5.1",
+    "typescript": "^5.5.3",
+    "webpack": "^5.93.0",
+    "webpack-cli": "^5.1.4",
+    "webpack-dev-server": "^5.0.4"
+  }
+}
