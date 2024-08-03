@@ -7,6 +7,25 @@
     <meta charset="UTF-8">
 
     <style>
+        @font-face {
+            font-family: CannetAgency;
+            src: url("fonts/CannetAgency.ttf") format("truetype");
+        }
+
+        @font-face {
+            font-family: CyberwayRiders;
+            src: url("fonts/CyberwayRiders.ttf") format("truetype");
+        }
+
+        @font-face {
+            font-family: Ryzes;
+            src: url("fonts/Ryzes.ttf") format("truetype");
+        }
+
+        @font-face {
+            font-family: IBMPlexSans-Thin;
+            src: url("fonts/IBMPlexSans-Thin.ttf") format("truetype");
+        }
         html,
         body {
             overflow: hidden;
@@ -14,16 +33,26 @@
             height: 100%;
             margin: 0;
             padding: 0;
-            background-color: #333;
+            /* background-color: #333;
+            z-index: -2; */
+        }
+
+        #background {
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            position: absolute;
         }
 
         #renderCanvas {
             width: 100%;
             height: 100%;
             touch-action: none;
+            position: absolute;
+            /* z-index: 10; */
         }
 
-        #fps {
+        .stats {
             position: absolute;
             background-color: black;
             border: 2px solid red;
@@ -34,23 +63,632 @@
             right: 10px;
             width: 60px;
             height: 20px;
+            z-index: 2000;
         }
 
         #fullscreen {
             position: absolute;
-            top: 3px;
-            left: 3px;
+            top: 50%;
+            left: 50%;
             width: 50px;
             height: 50px;
+            z-index: -1;
         }
-    </style>
 
+        #overlay {
+            backdrop-filter: blur(10px);
+            position: absolute;
+            left: 10px;
+            width: 150px;
+            top: 10px;
+            bottom: 10px;
+            pointer-events: none;
+        }
+
+        .fullscreen_posteffect {
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            position: absolute;
+            opacity: 0.9;
+            /* filter: saturate(0.4); */
+            mix-blend-mode: hard-light;
+        }
+
+
+        .titre {
+            position: absolute;
+            top: 10px;
+            left: 100px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            animation: smooth_alive 30s ease-in-out infinite;
+            z-index:1;
+        }
+        .titre>img{
+            position: relative;
+            width:100%;
+            left:0;
+        }
+
+        @keyframes smooth_alive {
+            0%, 100% { transform: scale(1); opacity : 0.9;}
+            25%,75% { transform: scale(0.98) translateX(-4px) translateY(-5px) rotate(1deg);opacity : 1.0;}
+            50% { transform: scale(1.07) translateX(30px) rotate(-1.3deg);opacity : 0.8;}
+        }
+        h1 {
+            position: relative;
+            font-weight: 100;
+            letter-spacing: .25em;
+            /* text-transform: uppercase; */
+            font-family: CannetAgency, sans-serif;
+            --scalar: 2vw;
+            font-size: clamp(1.5rem,
+                    calc(1rem + var(--scalar)),
+                    8rem);
+
+            @media (width > 480px) {
+                & {
+                    --scalar: 4vw;
+                }
+            }
+
+            color:rgb(255, 255, 255);
+            mix-blend-mode: normal;
+            /* overflow: hidden; */
+            /* text-shadow: 3px 3px 3px rgba(0, 0, 0, 1), 2px 2px 40px rgba(255, 255, 255, 0.7); */
+            /* text-shadow: 0 0 5px #fff,
+            0 0 10px #fff,
+            0 0 15px #fff,
+            0 0 20px #228dff,
+            0 0 35px #228dff,
+            0 0 40px #228dff; */
+
+            animation: glow 6s infinite ease;
+        }
+/* animates box shadow glow effect */
+@keyframes glow {
+	0%,100% {
+        text-shadow: 0 0 5px #fff,
+            0 0 10px #fff,
+            0 0 15px #fff,
+            0 0 20px #228dff,
+            0 0 35px #228dff,
+            0 0 40px #228dff;
+	}
+	50% {
+        text-shadow: 0 0 5px #fff,
+            0 0 6px #fff,
+            0 0 9px #fff,
+            0 0 12px #228dff,
+            0 0 15px #228dff,
+            0 0 24px #228dff;
+	}
+}
+        h1::first-letter {
+            font-size: 170%
+        }
+
+        .spotlight {
+            position: absolute;
+            top: -100%;
+            left: -100%;
+            right: 0;
+            bottom: 0;
+            background:
+                radial-gradient(circle,
+                    white,
+                    transparent 25%) center / 25% 25%,
+                radial-gradient(circle,
+                    white,
+                    transparent 25%) center / 12.5% 12.5%;
+            animation: light 15s linear infinite;
+            mix-blend-mode: plus-lighter;
+        }
+
+        @keyframes light {
+            to {
+                transform: translate(50%, 50%);
+            }
+        }
+
+        #subtitle {
+            position: absolute;
+            font-family: IBMPlexSans-Thin, sans-serif;
+            color: white; 
+            font-size: 2rem;
+            text-shadow: 0 0 25px #fff;
+        }
+
+
+        *
+{
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: consolas;
+}
+
+body
+{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: #1d061a
+}
+
+.container
+{
+  position: absolute;
+  width: 100%;
+  top: 250px;
+  bottom: 0px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 40px 0;
+  z-index:1;
+}
+
+.container .box
+{
+  position: relative;
+  width: 320px;
+  height: 400px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 40px 30px;
+  transition: 0.5s;
+}
+
+.container .box::before
+{
+  content:' ';
+  position: absolute;
+  top: 0;
+  left: 50px;
+  width: 50%;
+  height: 100%;
+  text-decoration: none;
+  background: #fff;
+  border-radius: 8px;
+  transform: skewX(15deg);
+  transition: 0.5s;
+}
+
+.container .box::after
+{
+  content:'';
+  position: absolute;
+  top: 0;
+  left: 50;
+  width: 50%;
+  height: 100%;
+  background: #fff;
+  border-radius: 8px;
+  transform: skewX(15deg);
+  transition: 0.5s;
+  filter: blur(30px);
+}
+
+.container .box:hover:before,
+.container .box:hover:after
+{
+  transform: skewX(0deg);
+  left: 20px;
+  width: calc(100% - 90px);
+  
+}
+
+.container .box:nth-child(1):before,
+.container .box:nth-child(1):after
+{
+  background: linear-gradient(315deg, #ffbc00, #ff0058)
+}
+
+.container .box:nth-child(2):before,
+.container .box:nth-child(2):after
+{
+  background: linear-gradient(315deg, #03a9f4, #ff0058)
+}
+
+.container .box:nth-child(3):before,
+.container .box:nth-child(3):after
+{
+  background: linear-gradient(315deg, #4dff03, #00d0ff)
+}
+
+.container .box:nth-child(4):before,
+.container .box:nth-child(4):after
+{
+  background: linear-gradient(315deg, #03ff9e, #ff00aa)
+}
+.container .box:nth-child(5):before,
+.container .box:nth-child(5):after
+{
+  background: linear-gradient(315deg, #d1ff04, #8400ff)
+}
+.container .box:nth-child(6):before,
+.container .box:nth-child(6):after
+{
+  background: linear-gradient(315deg, #03cdff, #ca380b)
+}
+
+.container .box span
+{
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.container .box span::before
+{
+  content:'';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  opacity: 0;
+  transition: 0.1s;  
+  animation: animate 2s ease-in-out infinite;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.08)
+}
+
+.container .box:hover span::before
+{
+  top: -50px;
+  left: 50px;
+  width: 100px;
+  height: 100px;
+  opacity: 1;
+}
+
+.container .box span::after
+{
+  content:'';
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  opacity: 0;
+  transition: 0.5s;
+  animation: animate 2s ease-in-out infinite;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+  animation-delay: -1s;
+}
+
+.container .box:hover span:after
+{
+  bottom: -50px;
+  right: 50px;
+  width: 100px;
+  height: 100px;
+  opacity: 1;
+}
+
+@keyframes animate
+{
+  0%, 100%
+  {
+    transform: translateY(10px);
+  }
+  
+  50%
+  {
+    transform: translate(-10px);
+  }
+}
+
+.container .box .content
+{
+  position: relative;
+  left: 0;
+  padding: 20px 40px;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  z-index: 1;
+  transform: 0.5s;
+  color: #fff;
+}
+
+.container .box:hover .content
+{
+  left: -25px;
+  padding: 60px 40px;
+}
+
+.container .box .content h2
+{
+  font-size: 2em;
+  color: #fff;
+  margin-bottom: 10px;
+}
+
+.container .box .content p
+{
+  font-size: 1.1em;
+  margin-bottom: 10px;
+  line-height: 1.4em;
+}
+
+.container .box .content a
+{
+  display: inline-block;
+  font-size: 1.1em;
+  color: #111;
+  background: #fff;
+  padding: 10px;
+  border-radius: 4px;
+  text-decoration: none;
+  font-weight: 700;
+  margin-top: 5px;
+}
+
+.container .box .content a:hover
+{
+  background: #ffcf4d;
+  border: 1px solid rgba(255, 0, 88, 0.4);
+  box-shadow: 0 1px 15px rgba(1, 1, 1, 0.2);
+}
+    </style>
+    <link rel="stylesheet" href="effects.css">
+
+
+    
 </head>
 
 <body>
-    <canvas id="renderCanvas"></canvas>
-    <div id="fps">0</div>
+
+    <div id="fps" class="stats">0</div>
+    <!-- <div id="background"></div> -->
     <button id="fullscreen" name="favorite" type="button"></button>
+    <canvas id="renderCanvas"></canvas>
+
+    <!-- <div id="overlay">
+
+        <div class="promo" style="--overlay-color: hotpink">
+            <div class="image-wrapper"><img
+                    src="https://images.unsplash.com/photo-1554620121-59e7f3f6e3a4?ixlib=rb-1.2.1&amp;amp;q=80&amp;amp;fm=jpg&amp;amp;crop=entropy&amp;amp;cs=tinysrgb&amp;amp;w=800&amp;amp;fit=max&amp;amp;ixid=eyJhcHBfaWQiOjE0NTg5fQ" />
+            </div>
+            <h2 class="title" data-cta="Get out there →">Nightlife</h2>
+        </div>
+        <div class="promo" style="--overlay-color: yellow">
+            <div class="image-wrapper"><img
+                    src="https://images.unsplash.com/photo-1523806762236-1d3a6b7eb3fd?ixlib=rb-1.2.1&amp;amp;q=80&amp;amp;fm=jpg&amp;amp;crop=entropy&amp;amp;cs=tinysrgb&amp;amp;w=800&amp;amp;fit=max&amp;amp;ixid=eyJhcHBfaWQiOjE0NTg5fQ" />
+            </div>
+            <h2 class="title" data-cta="Find yours →">Quiet Time</h2>
+        </div>
+        <div class="promo" style="--overlay-color: dodgerblue">
+            <div class="image-wrapper"><img
+                    src="https://images.unsplash.com/photo-1548008116-bcfec1f4c812?ixlib=rb-1.2.1&amp;amp;q=80&amp;amp;fm=jpg&amp;amp;crop=entropy&amp;amp;cs=tinysrgb&amp;amp;w=800&amp;amp;fit=max&amp;amp;ixid=eyJhcHBfaWQiOjE0NTg5fQ" />
+            </div>
+            <h2 class="title" data-cta="Grab a board →">Surf's Up!</h2>
+        </div>
+        <div class="promo" style="--overlay-color: darkgreen">
+            <div class="image-wrapper"><img
+                    src="https://images.unsplash.com/photo-1569335048491-5fb94951e885?ixlib=rb-1.2.1&amp;amp;q=80&amp;amp;fm=jpg&amp;amp;crop=entropy&amp;amp;cs=tinysrgb&amp;amp;w=800&amp;amp;fit=max&amp;amp;ixid=eyJhcHBfaWQiOjE0NTg5fQ" />
+            </div>
+            <h2 class="title" data-cta="Take a walk →">Day Hikes</h2>
+        </div>
+    </div> -->
+
+
+    <div id="subtitle">AI powered Darts game</div>    
+    <!-- <script src="three.r134.min.js"></script>
+    <script src="vanta.cells.min.js"></script> -->
+    <!-- <script src="three.71.min.js"></script> -->
+    <script src="three.min.js"></script>
+    <script src="stats.r11.js"></script>
+    <script>
+        // VANTA.CELLS({
+        //   el: "#background",
+        //   mouseControls: true,
+        //   touchControls: true,
+        //   gyroControls: false,
+        //   minHeight: 200.00,
+        //   minWidth: 200.00,
+        //   scale: 1.00,
+        //   color2: 0x35f2af,
+        //   size: 2.10
+        // })
+        var camera, scene, renderer,
+            geometry, material, mesh;
+
+        function init(textTexture=null) {
+            clock = new THREE.Clock();
+
+            renderer = new THREE.WebGLRenderer();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+
+            scene = new THREE.Scene();
+
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 10000);
+            camera.position.z = 1000;
+            scene.add(camera);
+
+            geometry = new THREE.CubeGeometry(200, 200, 200);
+            material = new THREE.MeshLambertMaterial({ color: 0xaa6666, wireframe: false });
+            mesh = new THREE.Mesh(geometry, material);
+            //scene.add( mesh );
+            cubeSineDriver = 0;
+
+            textGeo = new THREE.PlaneGeometry(300, 20);
+            THREE.ImageUtils.crossOrigin = ''; //Need this to pull in crossdomain images from AWS
+            if(!textTexture)
+                textTexture = THREE.ImageUtils.loadTexture('https://s3-us-west-2.amazonaws.com/s.cdpn.io/95637/quickText.png');
+                //textTexture = THREE.ImageUtils.loadTexture('textures/dartsilhouette.png');
+            textMaterial = new THREE.MeshLambertMaterial({ color: 0x00ffff, opacity: 1, map: textTexture, transparent: true, blending: THREE.AdditiveBlending })
+            text = new THREE.Mesh(textGeo, textMaterial);
+            text.position.x = 50;
+            text.position.y = 60;
+            text.position.z = 800;
+            scene.add(text);
+
+            light = new THREE.DirectionalLight(0xffffff, 0.8);
+            light.position.set(-1, 0, 1);
+            scene.add(light);
+
+            smokeTexture = THREE.ImageUtils.loadTexture('textures/Smoke-Element.png');
+            smokeMaterial = new THREE.MeshLambertMaterial({ color: 0x00dddd, map: smokeTexture, transparent: true });
+            smokeGeo = new THREE.PlaneGeometry(300, 300);
+            smokeParticles = [];
+
+
+            for (p = 0; p < 150; p++) {
+                var particle = new THREE.Mesh(smokeGeo, smokeMaterial);
+                particle.position.set(Math.random() * 500 - 250, Math.random() * 500 - 250, Math.random() * 1000 - 100);
+                particle.rotation.z = Math.random() * 360;
+                scene.add(particle);
+                smokeParticles.push(particle);
+            }
+
+            document.body.appendChild(renderer.domElement);
+            renderer.domElement.classList.add("fullscreen_posteffect");
+
+            window.addEventListener('resize', onWindowResize, false);
+
+            function onWindowResize() {
+
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+
+                renderer.setSize(window.innerWidth, window.innerHeight);
+
+            }
+
+            stats = new Stats();
+            stats.setMode(0);
+            // stats.domElement.style.position = 'absolute';
+            // stats.domElement.style.right = '0px';
+            // stats.domElement.style.top = '0px';
+            stats.domElement.classList.add("stats");
+            document.body.appendChild(stats.domElement);
+        }
+        function animate() {
+
+            // note: three.js includes requestAnimationFrame shim
+            stats.begin();
+            delta = clock.getDelta();
+            requestAnimationFrame(animate);
+            evolveSmoke();
+            render();
+            stats.end();
+        }
+
+        function evolveSmoke() {
+            var sp = smokeParticles.length;
+            while (sp--) {
+                smokeParticles[sp].rotation.z += (delta * 0.2);
+            }
+        }
+
+        function render() {
+
+            mesh.rotation.x += 0.005;
+            mesh.rotation.y += 0.01;
+            cubeSineDriver += .01;
+            mesh.position.z = 100 + (Math.sin(cubeSineDriver) * 500);
+            renderer.render(scene, camera);
+
+        }
+    </script>
+
+    <div class="titre" id="titre">
+        <h1>Dart</h1>
+        <h1>Net</h1>
+        <!-- <img src="textures/dartsilhouette.png"></img>
+        <span class="spotlight"></span> -->
+    </div>
+    <!-- <img id="dbg_img" width="500px" height="500px" style="position:absolute; bottom:0px;right:0px;z-index:10000;"></img> -->
+    <script src="dom-to-image.min.js"></script>
+    <script>
+        domtoimage.toPng(document.getElementById("subtitle"))
+        .then(data => {
+            const img = new Image();
+            img.src = data;
+            var debug = document.getElementById("dbg_img");
+            if(debug)
+                debug.src = data;
+            init(new THREE.CanvasTexture(img));
+            animate();
+
+        })
+        .catch(error => {
+            console.error("oops, something went wrong!", error);
+        });
+    </script>
+
+<div class="container">
+    <div class="box">
+      <span></span>
+      <div class="content">
+        <h2>Card one</h2>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+        <a href="#">Read More</a>
+      </div>
+    </div>
+    <div class="box">
+      <span></span>
+      <div class="content">
+        <h2>Card two</h2>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+        <a href="#">Read More</a>
+      </div>
+    </div>
+    <div class="box">
+      <span></span>
+      <div class="content">
+        <h2>Card Three</h2>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+        <a href="#">Read More</a>
+      </div>
+    </div>
+    <div class="box">
+        <span></span>
+        <div class="content">
+          <h2>Card Three</h2>
+          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+          <a href="#">Read More</a>
+        </div>
+      </div>
+      <div class="box">
+        <span></span>
+        <div class="content">
+          <h2>Card Three</h2>
+          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+          <a href="#">Read More</a>
+        </div>
+      </div>
+      <div class="box">
+        <span></span>
+        <div class="content">
+          <h2>Card Three</h2>
+          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+          <a href="#">Read More</a>
+        </div>
+      </div>
+
+  </div>
+    
 </body>
 
 </html>
